@@ -1,4 +1,4 @@
-import 'package:agora_video_call/pages/index_page.dart';
+import 'package:agora_video_call/view/index_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {

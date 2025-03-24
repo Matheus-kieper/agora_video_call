@@ -4,10 +4,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:async';
 import 'dart:developer';
 import 'package:permission_handler/permission_handler.dart';
-import './call_page.dart';
+import 'call_page.dart';
 
 //Para fazer a conexão entre usuários é usado um token disponibilizado no Concole do Agora.IO
-//porém por ser um token de test, ele expira em 24 horas, é necessário e no console e gerar outro
+//porém por ser um token de test, ele expira em 24 horas, é necessário ir no console e gerar outro
 
 class IndexPage extends StatefulWidget {
   const IndexPage({super.key});
