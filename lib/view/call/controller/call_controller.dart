@@ -3,16 +3,24 @@ import 'package:agora_video_call/constants.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class CallController extends GetxController{
-  int? remoteId;
-  late RtcEngine engine;
-  //ClientRoleType? _initialRole;
+class CallController extends GetxController {
+  RxInt? remoteId;
+  RtcEngine engine = createAgoraRtcEngine();
   RxBool isCameraEnabled = true.obs;
   RxBool isMuted = false.obs;
   RxBool isGuestMuted = false.obs;
+  RxBool isGuestJoined = false.obs;
+  String channelName = '';
+  int? id;
+
+ /* @override
+  void onInit() async {
+    super.onInit();
+    initAgora();
+  }*/
 
 
-  Future<void> initAgora(String channelName) async {
+  Future<void> initAgora() async {
     //permissões
     await [Permission.microphone, Permission.camera].request();
 
@@ -29,21 +37,19 @@ class CallController extends GetxController{
     localUserJoined.value = true;
     engine.registerEventHandler(
       RtcEngineEventHandler(
-        /*onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
-          debugPrint("local user ${connection.localUid} joined");
-          setState(() {
-            localUserJoined.value = true;
-          });
-        },*/
+        onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
+          //localUserJoined.value = true;
+        },
         onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
-            remoteUid = remoteUid;
+          id = remoteUid;
+          isGuestJoined.value = true;
         },
         onUserOffline: (
           RtcConnection connection,
           int remoteUid,
           UserOfflineReasonType reason,
         ) {
-            remoteId = null;
+          
         },
         /*onTokenPrivilegeWillExpire: (RtcConnection connection, String token) {
           debugPrint(
@@ -65,18 +71,10 @@ class CallController extends GetxController{
     );
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    disposeData();
-  }
-
   Future<void> disposeData() async {
     await engine.leaveChannel();
     await engine.release();
-    remoteId = null;
-    engine.disableAudio();
-    engine.muteLocalVideoStream(true);
+    localUserJoined.value = false;
   }
 
   final RxBool screenTapped = false.obs;

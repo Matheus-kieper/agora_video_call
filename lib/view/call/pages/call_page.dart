@@ -14,18 +14,14 @@ class CallPage extends StatefulWidget {
 
 class _CallPageState extends State<CallPage> {
   final controller = Get.put(CallController());
-
-
-  @override
-  void dispose() {
-    super.dispose();
-    controller.disposeData();
-  }
+  RtcEngine engine = createAgoraRtcEngine();
+  int? id;
 
   @override
   void initState() {
     super.initState();
-    controller.initAgora(widget.channelName!);
+    controller.channelName = widget.channelName!;
+    controller.initAgora();
   }
 
   @override
@@ -41,15 +37,22 @@ class _CallPageState extends State<CallPage> {
           },
           child: Stack(
             children: [
-              Center(child: _remoteVideo()),
+              Center(
+                child: Obx(
+                  () =>
+                      controller.isGuestJoined.value
+                          ? _remoteVideo()
+                          : Text(''),
+                ),
+              ),
               Align(
                 alignment: Alignment.bottomRight,
                 child: SizedBox(
                   width: 200,
                   height: 250,
-                  child: Obx(() {
-                    return Center(
-                      child:
+                  child: Center(
+                    child: Obx(
+                      () =>
                           controller.localUserJoined.value
                               ? AgoraVideoView(
                                 controller: VideoViewController(
@@ -58,8 +61,8 @@ class _CallPageState extends State<CallPage> {
                                 ),
                               )
                               : const Text('Carregando camera...'),
-                    );
-                  }),
+                    ),
+                  ),
                 ),
               ),
               Obx(() {
@@ -92,20 +95,13 @@ class _CallPageState extends State<CallPage> {
   }
 
   Widget _remoteVideo() {
-    if (controller.remoteId != null) {
-      return AgoraVideoView(
-        controller: VideoViewController.remote(
-          rtcEngine: controller.engine,
-          canvas: VideoCanvas(uid: controller.remoteId),
-          connection: RtcConnection(channelId: widget.channelName!),
-        ),
-      );
-    } else {
-      return const Text(
-        'Please wait for remote user to join',
-        textAlign: TextAlign.center,
-      );
-    }
+    return AgoraVideoView(
+      controller: VideoViewController.remote(
+        rtcEngine: controller.engine,
+        canvas: VideoCanvas(uid: controller.id),
+        connection: RtcConnection(channelId: widget.channelName!),
+      ),
+    );
   }
 
   Widget _enableCameraButton() {
@@ -144,9 +140,9 @@ class _CallPageState extends State<CallPage> {
           return Colors.black;
         }),
       ),
-      onPressed: () {
+      onPressed: () async {
+        await disposeData();
         Navigator.pop(context);
-        controller.disposeData();
       },
       icon: Icon(Icons.call_end),
     );
@@ -191,9 +187,20 @@ class _CallPageState extends State<CallPage> {
     return IconButton(
       onPressed: () {
         controller.isGuestMuted.value = !controller.isGuestMuted.value;
-        controller.engine.muteAllRemoteAudioStreams(controller.isGuestMuted.value);
+        controller.engine.muteAllRemoteAudioStreams(
+          controller.isGuestMuted.value,
+        );
       },
-      icon: Icon(controller.isGuestMuted.value ? Icons.headset_off : Icons.headphones),
+      icon: Icon(
+        controller.isGuestMuted.value ? Icons.headset_off : Icons.headphones,
+      ),
     );
+  }
+
+  Future<void> disposeData() async {
+    await controller.engine.leaveChannel();
+    await controller.engine.release();
+    controller.localUserJoined.value = false;
+    controller.id = null;
   }
 }
