@@ -1,4 +1,3 @@
-import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:async';
@@ -19,7 +18,6 @@ class IndexPage extends StatefulWidget {
 class _IndexPageState extends State<IndexPage> {
   final _chanellController = TextEditingController();
   var _validateError = false;
-  final ClientRoleType _role = ClientRoleType.clientRoleBroadcaster;
 
   @override
   void dispose() {
@@ -84,7 +82,7 @@ class _IndexPageState extends State<IndexPage> {
         MaterialPageRoute(
           builder:
               (context) =>
-                  CallPage(channelName: _chanellController.text, role: _role),
+                  CallPage(channelName: _chanellController.text),
         ),
       );
     }

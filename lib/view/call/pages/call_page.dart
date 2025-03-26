@@ -4,9 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class CallPage extends StatefulWidget {
-  const CallPage({this.channelName, this.role, super.key});
+  const CallPage({this.channelName, super.key});
   final String? channelName;
-  final ClientRoleType? role;
 
   @override
   State<CallPage> createState() => _CallPageState();
@@ -77,11 +76,11 @@ class _CallPageState extends State<CallPage> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                Obx(() => _muteGuest()),
-                                Obx(() => _muteMic()),
-                                _endCall(),
-                                Obx(() => _enableCameraButton()),
-                                _switchCamera(),
+                                Obx(() => controller.muteGuest()),
+                                Obx(() => controller.muteMic()),
+                                controller.endCall(context),
+                                Obx(() => controller.enableCameraButton()),
+                                controller.switchCamera(),
                               ],
                             ),
                           ),
@@ -102,105 +101,5 @@ class _CallPageState extends State<CallPage> {
         connection: RtcConnection(channelId: widget.channelName!),
       ),
     );
-  }
-
-  Widget _enableCameraButton() {
-    return IconButton(
-      style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
-          return Colors.grey;
-        }),
-        iconColor: WidgetStateProperty.resolveWith<Color?>((states) {
-          return Colors.black;
-        }),
-      ),
-      onPressed: () {
-        controller.isCameraEnabled.value = !controller.isCameraEnabled.value;
-        if (controller.isCameraEnabled.value) {
-          controller.engine.enableVideo();
-        } else {
-          controller.engine.disableVideo();
-        }
-      },
-      icon: Icon(
-        controller.isCameraEnabled.value
-            ? Icons.videocam_rounded
-            : Icons.videocam_off_rounded,
-      ),
-    );
-  }
-
-  Widget _endCall() {
-    return IconButton(
-      style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
-          return Colors.red;
-        }),
-        iconColor: WidgetStateProperty.resolveWith<Color?>((states) {
-          return Colors.black;
-        }),
-      ),
-      onPressed: () async {
-        await disposeData();
-        Navigator.pop(context);
-      },
-      icon: Icon(Icons.call_end),
-    );
-  }
-
-  Widget _muteMic() {
-    return IconButton(
-      style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
-          return Colors.grey;
-        }),
-        iconColor: WidgetStateProperty.resolveWith<Color?>((states) {
-          return Colors.black;
-        }),
-      ),
-      onPressed: () {
-        controller.isMuted.value = !controller.isMuted.value;
-        controller.engine.muteLocalAudioStream(controller.isMuted.value);
-      },
-      icon: Icon(controller.isMuted.value ? Icons.mic_off : Icons.mic),
-    );
-  }
-
-  Widget _switchCamera() {
-    return IconButton(
-      style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
-          return Colors.grey;
-        }),
-        iconColor: WidgetStateProperty.resolveWith<Color?>((states) {
-          return Colors.black;
-        }),
-      ),
-      onPressed: () {
-        controller.engine.switchCamera();
-      },
-      icon: Icon(Icons.switch_camera_rounded),
-    );
-  }
-
-  Widget _muteGuest() {
-    return IconButton(
-      onPressed: () {
-        controller.isGuestMuted.value = !controller.isGuestMuted.value;
-        controller.engine.muteAllRemoteAudioStreams(
-          controller.isGuestMuted.value,
-        );
-      },
-      icon: Icon(
-        controller.isGuestMuted.value ? Icons.headset_off : Icons.headphones,
-      ),
-    );
-  }
-
-  Future<void> disposeData() async {
-    await controller.engine.leaveChannel();
-    await controller.engine.release();
-    controller.localUserJoined.value = false;
-    controller.id = null;
   }
 }
